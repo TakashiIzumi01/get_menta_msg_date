@@ -18,7 +18,7 @@ class MentaMsgDate():
         self.message_url = "https://menta.work/member/message?page="
         self.page_num = 20  # 最大ページネーション数
         self.json_file = "/spereadsheet-test-a32d0a4b40d9.json"  # こちらのスクリプトに問題なければこちらのファイルもお渡しします。
-        self.spreadsheet_key = "16EfYtDFZMHrf_0r7ylb-spYMbN8kduInzqCmEaRWS5A"
+        self.spreadsheet_key = "spreadsheet_id"  # 書き込むスプレットシートのID
         self.delta_date = -3  # 何日前の情報まで取得するか
         self.insert_columns = 8  # 8：H列
 
