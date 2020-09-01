@@ -12,13 +12,13 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 class MentaMsgDate():
     def __init__(self):
-        self.user_id = "id"  # MENTA Login User ID
-        self.password = "pass"  # MENTA Login Password
+        self.user = "user_id"  # MENTA Login User ID
+        self.password = "Password"  # MENTA Login Password
         self.login_url = "https://menta.work/login"
         self.message_url = "https://menta.work/member/message?page="
         self.page_num = 20  # 最大ページネーション数
-        self.json_file = "/spereadsheet-test-a32d0a4b40d9.json"  # こちらのスクリプトに問題なければこちらのファイルもお渡しします。
-        self.spreadsheet_key = "spreadsheet_id"  # 書き込むスプレットシートのID
+        self.json_file = "/spereadsheet-test-a32d0a4b40d9.json"  # scriptに問題なければお渡しします
+        self.spreadsheet_key = "SpreadSheet ID"  # 情報を書き込むスプレットシートのID
         self.delta_date = -3  # 何日前の情報まで取得するか
         self.insert_columns = 8  # 8：H列
 
@@ -60,6 +60,7 @@ class MentaMsgDate():
                     union_df_tmp2 = union_df['date']
                     insert_value = union_df_tmp2[n]
 
+                    # 書き込み処理
                     self.ss_info().update_cell(insert_row, self.insert_columns, insert_value)
 
 
@@ -71,7 +72,7 @@ class MentaMsgDate():
 
         # ログイン情報
         login_info = {
-            "email":self.user_id,
+            "email":self.user,
             "password":self.password,
         }
 
@@ -88,17 +89,30 @@ class MentaMsgDate():
         # message page
         target_res = session.get(self.message_url + str(page))
         target_res.raise_for_status()
+        
 
         # get name and date
         soup = BeautifulSoup(target_res.text, 'html.parser')
-        elems = soup.findAll('div', class_='msg_box__head')
-        loop_count = 0
-        context_df = pd.DataFrame(index=[], columns=['name','date'])
+#        soup = BeautifulSoup(open('MENTA.html'), 'html.parser')  # test用
+
+        # nameデータを取得
+        elems = soup.findAll('div', class_='name')
+        name_list = []
         for elem in elems:
-            temp = elem.text
-            tmp = temp.split()
-            context_df.loc[loop_count] = tmp
-            loop_count += 1
+            name_tmp = elem.text
+            name_tmp = name_tmp.strip()  # 空白削除
+            name_list.append(name_tmp)
+
+        # dateデータを取得
+        elems = soup.findAll('div', class_='date')
+        date_list = []
+        for elem in elems:
+            date_tmp = elem.text
+            date_tmp = date_tmp.strip()  # 空白削除
+            date_list.append(date_tmp)
+
+        context_df = pd.DataFrame({'name':name_list ,
+                                   'date':date_list})
 
         return context_df
 
