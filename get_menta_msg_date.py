@@ -17,8 +17,8 @@ class MentaMsgDate():
         self.login_url = "https://menta.work/login"
         self.message_url = "https://menta.work/member/message?page="
         self.page_num = 20  # 最大ページネーション数
-        self.json_file = "/spereadsheet-test-a32d0a4b40d9.json"  # scriptに問題なければお渡しします
-        self.spreadsheet_key = "SpreadSheet ID"  # 情報を書き込むスプレットシートのID
+        self.json_file = "sample.json"  # json file
+        self.spreadsheet_key = "SpreadSheet ID" # spreadsheet id
         self.delta_date = -3  # 何日前の情報まで取得するか
         self.insert_columns = 8  # 8：H列
 
@@ -60,7 +60,7 @@ class MentaMsgDate():
                     union_df_tmp2 = union_df['date']
                     insert_value = union_df_tmp2[n]
 
-                    # 書き込み処理
+                    # spreadsheet update
                     self.ss_info().update_cell(insert_row, self.insert_columns, insert_value)
 
 
@@ -93,7 +93,7 @@ class MentaMsgDate():
 
         # get name and date
         soup = BeautifulSoup(target_res.text, 'html.parser')
-#        soup = BeautifulSoup(open('MENTA.html'), 'html.parser')  # test用
+#        soup = BeautifulSoup(open('MENTA.html'), 'html.parser')  # test
 
         # nameデータを取得
         elems = soup.findAll('div', class_='name')
@@ -108,6 +108,7 @@ class MentaMsgDate():
         date_list = []
         for elem in elems:
             date_tmp = elem.text
+            date_tmp = re.sub(r'\未読\s\d+', '', date_tmp)
             date_tmp = date_tmp.strip()  # 空白削除
             date_list.append(date_tmp)
 
