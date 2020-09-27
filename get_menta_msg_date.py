@@ -5,6 +5,7 @@ import re
 import pandas as pd
 import datetime
 import os
+from dotenv import load_dotenv
 
 import gspread
 import json
@@ -12,15 +13,19 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 class MentaMsgDate():
     def __init__(self):
-        self.user = "user_id"  # MENTA Login User ID
-        self.password = "Password"  # MENTA Login Password
-        self.login_url = "https://menta.work/login"
-        self.message_url = "https://menta.work/member/message?page="
-        self.page_num = 20  # 最大ページネーション数
-        self.json_file = "sample.json"  # json file
-        self.spreadsheet_key = "SpreadSheet ID" # spreadsheet id
-        self.delta_date = -3  # 何日前の情報まで取得するか
-        self.insert_columns = 8  # 8：H列
+        # .envファイルの内容を読込
+        load_dotenv()
+
+        # os.environを用いて環境変数を取得
+        self.user = os.environ['USER']
+        self.password = os.environ['PASSWORD']
+        self.login_url = os.environ['LOGIN_URL']
+        self.message_url = os.environ['MESSAGE_URL']
+        self.page_num = int(os.environ['PAGE_NUM'])  # 最大ページネーション数
+        self.json_file = os.environ['JSON_FILE']
+        self.spreadsheet_key = os.environ['SPREADSHEET_KEY']
+        self.delta_date = int(os.environ['DELTA_DATE'])  # 何日まえの情報まで取得するか
+        self.insert_columns = int(os.environ['INSERT_COLUMNS'])  # 8：H列
 
     def main_process(self):
         # date filter
