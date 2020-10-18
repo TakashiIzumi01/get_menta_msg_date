@@ -1,1 +1,1 @@
-web: python menta_ss_update.py
+web: python get_menta_msg_date.py
