@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import pandas as pd
@@ -10,18 +12,20 @@ config = configparser.ConfigParser()
 
 class MentaScraping():
     def __init__(self):
+        # url info
+        self.login_url = "https://menta.work/login"
+        self.msg_url = "https://menta.work/member/message?page="
+
         # .envファイルの内容を読込
         load_dotenv()
 
         # os.environを用いて環境変数を取得
         self.userid = os.environ['USERID']
         self.passwd = os.environ['PASSWD']
-        self.login_url = os.environ['LOGIN_URL']
-        self.msg_url = os.environ['MSG_URL']
 
-    def get_msg_html_info(self, page_num):
+    def menta_login(self):
         """
-        概要：MENTAメッセージページHTML情報を取得
+        概要：MENTAログイン
         """
         # セッションを開始
         session = requests.session()
@@ -43,6 +47,10 @@ class MentaScraping():
         res = session.post(self.login_url, data=login_info)
         res.raise_for_status() # エラーならここで例外を発生させる
 
+        return session
+
+
+    def get_msg_html_info(self, session, page_num):
         # message page
         target_res = session.get(self.msg_url + str(page_num))
         target_res.raise_for_status()
@@ -85,7 +93,8 @@ class MentaScraping():
 
 if __name__ == "__main__":
     get_menta_info = MentaScraping()
-    html_info = get_menta_info.get_msg_html_info(1)
+    session = get_menta_info.menta_login()
+    html_info = get_menta_info.get_msg_html_info(session, 1)
 
     # 単体テスト用
     html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
