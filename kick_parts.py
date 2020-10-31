@@ -20,7 +20,7 @@ class Parts():
         # 外部ファイル読込
         self.ss_api = SpreadSheetAPI()
 
-    def isnert_name(self, menta_df):
+    def insert_name(self, menta_df):
         # 契約中のリストを別途取得
         menta_contract_df = menta_df[menta_df['contract'] == '契約中']
 
@@ -46,7 +46,7 @@ class Parts():
         input_list_df = match_df[match_df['date'] > str(self.date_filter)]
 
         # 契約中だけれどSSに名前が無いリストと一致するリストを結合
-        update_df = pd.concat([input_list_df, self.contact_non_name_delv_df])
+        update_df = pd.concat([input_list_df, self.contact_non_name_delv_df], sort=True)
         update_df = update_df[['name', 'date', 'index_no']]
         update_df = update_df.reset_index(drop=True)
 

@@ -23,13 +23,9 @@ class MentaScraping():
         self.userid = os.environ['USERID']
         self.passwd = os.environ['PASSWD']
 
-    def menta_login(self):
-        """
-        概要：MENTAログイン
-        """
         # セッションを開始
-        session = requests.session()
-        response = session.get(self.login_url)
+        self.session = requests.session()
+        response = self.session.get(self.login_url)
 
         # ログイン情報
         login_info = {
@@ -44,15 +40,12 @@ class MentaScraping():
         login_info["_token"] = _token
 
         # login
-        res = session.post(self.login_url, data=login_info)
+        res = self.session.post(self.login_url, data=login_info)
         res.raise_for_status() # エラーならここで例外を発生させる
 
-        return session
-
-
-    def get_msg_html_info(self, session, page_num):
+    def get_msg_html_info(self, page_num):
         # message page
-        target_res = session.get(self.msg_url + str(page_num))
+        target_res = self.session.get(self.msg_url + str(page_num))
         target_res.raise_for_status()
         
         # get name and date
@@ -92,13 +85,11 @@ class MentaScraping():
         return df
 
 if __name__ == "__main__":
-    get_menta_info = MentaScraping()
-    session = get_menta_info.menta_login()
-    html_info = get_menta_info.get_msg_html_info(session, 1)
+    get_menta_client = MentaScraping()
+    html_info = get_menta_client.get_msg_html_info(1)
 
     # 単体テスト用
     html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
 
-    contact_list_df = get_menta_info.get_msg_data_info(html_info)
-#    contact_list_df.to_csv('/Users/horiuchitakashi/Desktop/python/MENTA_message_date_get/check.csv')
+    contact_list_df = get_menta_client.get_msg_data_info(html_info)
     print(contact_list_df)
