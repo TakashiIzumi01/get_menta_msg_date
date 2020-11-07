@@ -15,6 +15,7 @@ class MentaScraping():
         # url info
         self.login_url = "https://menta.work/login"
         self.msg_url = "https://menta.work/member/message?page="
+        self.cont_url = "https://menta.work/member/mentee/monthly/contracting"
 
         # .envファイルの内容を読込
         load_dotenv()
@@ -44,21 +45,36 @@ class MentaScraping():
         res.raise_for_status() # エラーならここで例外を発生させる
 
     def get_msg_html_info(self, page_num):
+        """
+        概要：MENTAメッセージページHTMLを取得
+        """
         # message page
         target_res = self.session.get(self.msg_url + str(page_num))
         target_res.raise_for_status()
         
-        # get name and date
-        html_info = BeautifulSoup(target_res.text, 'html.parser')
+        # get html
+        msg_html_info = BeautifulSoup(target_res.text, 'html.parser')
 
-        return html_info
+        return msg_html_info
 
+    def get_cont_html_info(self):
+        """
+        概要：MENTA 契約者HTMLを取得
+        """
+        # contract page
+        target_res = self.session.get(self.cont_url)
+        target_res.raise_for_status()
+        
+        # get html
+        cont_html_info = BeautifulSoup(target_res.text, 'html.parser')
 
-    def get_msg_data_info(self, html_info):
+        return cont_html_info
+
+    def get_msg_data_info(self, msg_html_info):
         """
         概要：MENTAメッセージページHTMLから名前と最終やりとり日付情報を取得
         """
-        msgs = html_info.findAll('div', class_='msg_box__head')
+        msgs = msg_html_info.findAll('div', class_='msg_box__head')
 
         df = pd.DataFrame(index=[], columns=['name', 'contract', 'date'])
         for msg in msgs:
@@ -81,15 +97,35 @@ class MentaScraping():
 
             df = df.append(pd.Series([text1, text2, text3], index=df.columns), ignore_index=True)
 
+        return df
+
+    def get_cont_data_info(self, cont_html_info):
+        """
+        概要：MENTA契約者ページHTMLから名前情報を取得
+        """
+        msgs = cont_html_info.findAll('a', href=re.compile('https://menta.work/user/'))
+
+        df = pd.DataFrame(index=[], columns=['name'])
+        for msg in msgs:
+            text = msg.get_text()
+            text = text.strip()  # 空白削除
+
+            df = df.append(pd.Series([text], index=df.columns), ignore_index=True)
 
         return df
 
+
 if __name__ == "__main__":
     get_menta_client = MentaScraping()
-    html_info = get_menta_client.get_msg_html_info(1)
 
-    # 単体テスト用
-    html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
+    # 単体テスト用 メッセージ取得
+    msg_html_info = get_menta_client.get_msg_html_info(1)
+    msg_html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
+    msg_list_df = get_menta_client.get_msg_data_info(msg_html_info)
+    print(msg_list_df)
 
-    contact_list_df = get_menta_client.get_msg_data_info(html_info)
-    print(contact_list_df)
+    # 単体テスト用 契約者情報取得
+    # cont_html_info = get_menta_client.get_cont_html_info()
+    cont_html_info = BeautifulSoup(open('MENTA_cont_list.html'), 'html.parser')
+    cont_list_df = get_menta_client.get_cont_data_info(cont_html_info)
+    print(cont_list_df)

@@ -10,11 +10,11 @@ def_parts = Parts()
 
 page = 1
 while page <= 100:
-    # html情報を取得  TODO:本当はマルチスレッドを起動して複数ページに同時アクセスするようにしたい
-    html = menta_html_client.get_msg_html_info(page)
+    # MENTA MSG HTML情報を取得  TODO:本当はマルチスレッドを起動して複数ページに同時アクセスするようにしたい
+    msg_html_info = menta_html_client.get_msg_html_info(page)
 
-    # menta情報を取得
-    menta_df = menta_html_client.get_msg_data_info(html)
+    # メッセージ情報を取得
+    menta_df = menta_html_client.get_msg_data_info(msg_html_info)
 
     # 情報取得できなかった時点で終了
     if len(menta_df) > 0:
@@ -28,3 +28,12 @@ while page <= 100:
     # SSに最終連絡日を更新
     def_parts.update_date(menta_df)
 
+# TODO:こちらも複数ページ処理が必要か？？
+# MENTA CONTRACT HTMLを取得
+cont_html_info = menta_html_client.get_cont_html_info()
+
+# 契約者情報を取得
+cont_df = menta_html_client.get_cont_data_info(cont_html_info)
+
+# 契約終了者のシートを移動
+def_parts.move_data(cont_df)

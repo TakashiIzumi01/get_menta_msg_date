@@ -12,7 +12,8 @@ class SpreadSheetAPI():
         # os.environを用いて環境変数を取得
         self.json_file = os.environ['JSON_FILE']
         self.spreadsheet_key = os.environ['SPREADSHEET_KEY']
-        self.sheet = os.environ['SHEET']
+        self.sheet1 = os.environ['SHEET1']
+        self.sheet2 = os.environ['SHEET2']
         self.insert_name_columns = int(os.environ['INSERT_NAME_COLUMNS'])
         self.insert_date_columns = int(os.environ['INSERT_DATE_COLUMNS'])
 
@@ -32,11 +33,12 @@ class SpreadSheetAPI():
         gc = gspread.authorize(credentials)
 
         #共有設定したスプレッドシートのシートを開く
-        worksheet = gc.open_by_key(self.spreadsheet_key).worksheet(self.sheet)
+        self.worksheet1 = gc.open_by_key(self.spreadsheet_key).worksheet(self.sheet1)
+        self.worksheet2 = gc.open_by_key(self.spreadsheet_key).worksheet(self.sheet2)
 
-        return worksheet
+        # 修正が手間なのでリターンとして以下を返す
+        return self.worksheet1
 
-    
     def ss_orthopaedy(self):
         """
         概要：SSのデータの形を整形
@@ -106,6 +108,28 @@ class SpreadSheetAPI():
 
                 # SSに書込み処理
                 self.get_ss_info().update_cell(insert_row, self.insert_date_columns, insert_value)
+
+
+    def end_list_insert(self, end_lists):
+        """
+        概要：卒業生シートに契約終了者情報を追加
+        """
+        # 卒業生側のSSの情報取得
+        # この部分の製造についてファイルの作り込みを変更するか検討
+        # →別シートのデータを簡単に取得できるように使い勝手を修正したい
+
+        # insert処理
+        for end_list in end_lists:
+            self.worksheet2.append_row(end_list)
+
+
+    def end_list_delete(self, end_list_rows):
+        """
+        概要：現役生シートから契約終了者情報の削除
+        """
+        # 削除処理
+        for end_list_row in end_list_rows:
+            self.worksheet1.delete_row(end_list_row)
 
 
 if __name__ == "__main__":
