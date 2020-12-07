@@ -16,6 +16,8 @@ class SpreadSheetAPI():
         self.sheet2 = os.environ['SHEET2']
         self.insert_name_columns = int(os.environ['INSERT_NAME_COLUMNS'])
         self.insert_date_columns = int(os.environ['INSERT_DATE_COLUMNS'])
+        self.insert_cont_start_columns = int(os.environ['INSERT_CONT_START_COLUMNS'])
+        self.insert_cont_end_columns = int(os.environ['INSERT_CONT_END_COLUMNS'])
 
     def get_ss_info(self):
         """
@@ -110,14 +112,39 @@ class SpreadSheetAPI():
                 self.get_ss_info().update_cell(insert_row, self.insert_date_columns, insert_value)
 
 
+    def update_cont_date(self, cont_df, args):
+        """
+        概要：契約日情報の更新
+        引数：args=0:契約日の更新、args=1:契約終了日の更新
+        """
+        # update処理
+        num = len(cont_df)
+        for n in range(num):
+            # insertする行数を取得
+            index_tmp = cont_df['index_no']
+            insert_row = index_tmp[n]
+
+            if args == 0:
+                # insertする日付データを取得
+                date_tmp = cont_df['cont_start_date'].values.tolist()
+                insert_value = date_tmp[n]
+
+                # 契約日情報を更新
+                self.get_ss_info().update_cell(insert_row, self.insert_cont_start_columns, insert_value)
+
+            else:
+                # insertする日付データを取得
+                date_tmp = cont_df['cont_end_date'].values.tolist()
+                insert_value = date_tmp[n]
+
+                # 契約日情報を更新
+                self.get_ss_info().update_cell(insert_row, self.insert_cont_end_columns, insert_value)
+
+
     def end_list_insert(self, end_lists):
         """
         概要：卒業生シートに契約終了者情報を追加
         """
-        # 卒業生側のSSの情報取得
-        # この部分の製造についてファイルの作り込みを変更するか検討
-        # →別シートのデータを簡単に取得できるように使い勝手を修正したい
-
         # insert処理
         for end_list in end_lists:
             self.worksheet2.append_row(end_list)
