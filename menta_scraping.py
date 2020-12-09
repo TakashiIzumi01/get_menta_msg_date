@@ -101,28 +101,54 @@ class MentaScraping():
 
     def get_cont_data_info(self, cont_html_info):
         """
-        概要：MENTA契約者ページHTMLから名前情報を取得
+        概要：MENTA契約者ページHTMLから名前と契約日情報を取得
         """
         msgs = cont_html_info.findAll('a', href=re.compile('https://menta.work/user/'))
 
-        df = pd.DataFrame(index=[], columns=['name'])
+        name = []
         for msg in msgs:
             text = msg.get_text()
             text = text.strip()  # 空白削除
 
-            df = df.append(pd.Series([text], index=df.columns), ignore_index=True)
+            name.append(text)
 
-        return df
+        # 契約日取得
+        dates = cont_html_info.findAll('td', class_="whitespace-no-wrap text-center")
 
+        con_start_date = []
+        con_end_date = []
+
+        for date in dates:
+            tmp_text = date.get_text()
+            if tmp_text.find('次回') == -1:
+                text2 = tmp_text.strip()  # 空白削除
+                con_start_date.append(text2)
+
+            else:
+                text3 = tmp_text.strip()  # 空白削除
+                text3 = text3.split('日')[0]  # ”日”以降の文字を削除
+                text3 = text3 + '日'  # カッコ悪いのでいい方法があれば、、
+                con_end_date.append(text3)
+
+        # nameの最初の方に不要データがあるため、降順に並び替えて名前と契約日を結合する
+        name = name[::-1]
+        con_start_date = con_start_date[::-1]
+        con_end_date = con_end_date[::-1]
+
+        summary_data = [name, con_start_date, con_end_date]
+        df_result = pd.DataFrame(summary_data).T  # 行列入れ替え
+        df_result.columns = ['name', 'cont_start_date', 'cont_end_date']  # カラム追加
+
+        return df_result
 
 if __name__ == "__main__":
     get_menta_client = MentaScraping()
 
     # 単体テスト用 メッセージ取得
     msg_html_info = get_menta_client.get_msg_html_info(1)
-    msg_html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
-    msg_list_df = get_menta_client.get_msg_data_info(msg_html_info)
-    print(msg_list_df)
+    # msg_html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
+    # msg_list_df = get_menta_client.get_msg_data_info(msg_html_info)
+    # print(msg_list_df)
 
     # 単体テスト用 契約者情報取得
     # cont_html_info = get_menta_client.get_cont_html_info()
