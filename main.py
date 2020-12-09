@@ -28,12 +28,14 @@ while page <= 100:
     # SSに最終連絡日を更新
     def_parts.update_date(menta_df)
 
-# TODO:こちらも複数ページ処理が必要か？？
 # MENTA CONTRACT HTMLを取得
 cont_html_info = menta_html_client.get_cont_html_info()
 
 # 契約者情報を取得
 cont_df = menta_html_client.get_cont_data_info(cont_html_info)
+
+# 契約日情報の更新
+def_parts.add_cont_date(cont_df)
 
 # 契約終了者のシートを移動
 def_parts.move_data(cont_df)

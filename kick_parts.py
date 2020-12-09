@@ -20,15 +20,16 @@ class Parts():
         # 外部ファイル読込
         self.ss_api = SpreadSheetAPI()
 
+        # ss情報取得
+        self.ss_df = self.ss_api.ss_orthopaedy()
+
+
     def insert_name(self, menta_df):
         """
         概要：契約中の方をSSに追加する処理
         """
         # 契約中のリストを別途取得
         menta_contract_df = menta_df[menta_df['contract'] == '契約中']
-
-        # ss情報取得
-        self.ss_df = self.ss_api.ss_orthopaedy()  # 整形処理
 
         # 契約中だけれど、SSにないリストの抽出
         contact_non_name_df = pd.merge(self.ss_df, menta_contract_df, left_on='受講生', right_on='name', how='outer', indicator='check')
@@ -40,6 +41,10 @@ class Parts():
 
         # SS挿入場所についてインスタンス化する
         self.contact_non_name_delv_df = contact_non_name_df
+
+        # 新規契約者が追加になるケースがあるため、ss情報を更新
+        self.ss_df = self.ss_api.ss_orthopaedy()
+
 
 
     def update_date(self, menta_df):
@@ -59,22 +64,56 @@ class Parts():
         # SSの日付情報を更新
         self.ss_api.date_update(update_df)
 
+    def add_cont_date(self, cont_df):
+        """
+        概要：契約中の方の契約日と契約終了日をスプシに追加
+        """
+        # 契約中の方のリストを取得
+        current_cont_df = pd.merge(self.ss_df, cont_df, left_on='受講生', right_on='name', how='inner')
+
+        # 既に日時情報が最新で更新不要なリストを取得
+        unnecessary_df = pd.merge(self.ss_df, cont_df, left_on=['受講生', '契約日', '契約終了日'], right_on=['name', 'cont_start_date', 'cont_end_date'])
+        unnecessary_df = unnecessary_df['受講生']
+
+        # 更新が必要なリスト情報を取得
+        update_cont_df = pd.merge(current_cont_df, unnecessary_df, on=['受講生'], how='outer', indicator='check')
+        update_cont_df = update_cont_df[update_cont_df['check'] == 'left_only']
+        update_cont_df = update_cont_df.reset_index(drop=True)  # indexを0から再付与
+        print(update_cont_df)
+        update_row_num = len(update_cont_df)
+
+        # 更新対象があれば下記を実施
+        if update_row_num > 0:
+            cont_start_df = update_cont_df[['name', 'cont_start_date', 'index_no']]
+            cont_end_df = update_cont_df[['name', 'cont_end_date', 'index_no']]
+
+            # 契約日更新
+            self.ss_api.update_cont_date(cont_start_df, 0)
+
+            # 契約終了日更新
+            self.ss_api.update_cont_date(cont_end_df, 1)
+
+        else:
+            print('更新対象なし')
+
     def move_data(self, cont_df):
         """
         概要：契約終了者を現役生から卒業生に移動する処理
         """
-        # 契約終了者のリストを取得（名前追加機能で追加された方は契約者のはずなのでSSの再取得は未実施）
+        # 契約終了者のリストを取得
         cont_match_df = pd.merge(self.ss_df, cont_df, left_on='受講生', right_on='name', how='outer', indicator='check')
         end_list_df = cont_match_df[cont_match_df['check'] == 'left_only']
 
         # 契約終了者のindex情報を取得
         end_list_no_df = end_list_df['index_no']
         end_list_rows = end_list_no_df.values.tolist()
-        end_list_rows.sort(reverse=True)  # (注)削除行数を降順にしないと削除場所を間違う
+        end_list_rows.sort(reverse=True)  # (注)削除行数を降順にしないとデータがどんどん消えるので削除場所を間違う
 
-        # 契約終了者の元々のスプシの情報を取得
+        # 契約終了者の元々のスプシの情報を取得(mergeで付与された不要カラムを削除)
         end_list_df = end_list_df.drop('index_no', axis=1)
         end_list_df = end_list_df.drop('name', axis=1)
+        end_list_df = end_list_df.drop('cont_start_date', axis=1)
+        end_list_df = end_list_df.drop('cont_end_date', axis=1)
         end_list_df = end_list_df.drop('check', axis=1)
         end_lists = end_list_df.values.tolist()
 
@@ -83,3 +122,4 @@ class Parts():
 
         # 契約終了者を現役生から削除
         self.ss_api.end_list_delete(end_list_rows)
+
