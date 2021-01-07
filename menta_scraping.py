@@ -138,6 +138,8 @@ class MentaScraping():
         summary_data = [name, con_start_date, con_end_date]
         df_result = pd.DataFrame(summary_data).T  # 行列入れ替え
         df_result.columns = ['name', 'cont_start_date', 'cont_end_date']  # カラム追加
+        print('### scraping result ###')
+        print(df_result)
 
         return df_result
 
