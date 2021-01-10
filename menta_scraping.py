@@ -134,6 +134,12 @@ class MentaScraping():
                 con_end_date.append(text3)
                 get_count += 1
 
+        # 確認用
+        print('契約開始日')
+        print(con_start_date)
+        print('契約終了日')
+        print(con_end_date)
+
         # nameの最初の方に不要データがあるため、降順に並び替えて名前と契約日を結合する
         name = name[::-1]
         con_start_date = con_start_date[::-1]
