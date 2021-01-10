@@ -118,17 +118,21 @@ class MentaScraping():
         con_start_date = []
         con_end_date = []
 
+        get_count = 0
+
         for date in dates:
             tmp_text = date.get_text()
-            if tmp_text.find('次回') == -1:
+            if get_count % 2 == 0:
                 text2 = tmp_text.strip()  # 空白削除
                 con_start_date.append(text2)
+                get_count += 1
 
             else:
                 text3 = tmp_text.strip()  # 空白削除
                 text3 = text3.split('日')[0]  # ”日”以降の文字を削除
                 text3 = text3 + '日'  # カッコ悪いのでいい方法があれば、、
                 con_end_date.append(text3)
+                get_count += 1
 
         # nameの最初の方に不要データがあるため、降順に並び替えて名前と契約日を結合する
         name = name[::-1]
@@ -154,6 +158,6 @@ if __name__ == "__main__":
 
     # 単体テスト用 契約者情報取得
     # cont_html_info = get_menta_client.get_cont_html_info()
-    cont_html_info = BeautifulSoup(open('MENTA_cont_list.html'), 'html.parser')
+    cont_html_info = BeautifulSoup(open('MENTA_20210107.htm'), 'html.parser')
     cont_list_df = get_menta_client.get_cont_data_info(cont_html_info)
     print(cont_list_df)
