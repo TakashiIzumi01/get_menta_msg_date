@@ -122,6 +122,8 @@ class MentaScraping():
 
         for date in dates:
             tmp_text = date.get_text()
+            print('scraping_result')
+            print(tmp_text)
             if get_count % 2 == 0:
                 text2 = tmp_text.strip()  # 空白削除
                 con_start_date.append(text2)
