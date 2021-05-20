@@ -85,6 +85,7 @@ class MentaScraping():
             # name
             text1 = elems1.get_text()
             text1 = text1.strip()  # 空白削除
+            text1 = text1.replace('さんから', '')
 
             # contract
             text2 = elems2.get_text() if elems2 is not None else None
