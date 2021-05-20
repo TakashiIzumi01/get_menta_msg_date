@@ -85,6 +85,7 @@ class Parts():
         update_cont_df = update_cont_df.reset_index(drop=True)  # indexを0から再付与
         print('\n### 更新を実施するリスト ###')
         print(update_cont_df)
+
         update_row_num = len(update_cont_df)
 
         # 更新対象があれば下記を実施
