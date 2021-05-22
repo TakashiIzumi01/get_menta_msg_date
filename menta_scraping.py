@@ -74,13 +74,14 @@ class MentaScraping():
         """
         概要：MENTAメッセージページHTMLから名前と最終やりとり日付情報を取得
         """
-        msgs = msg_html_info.findAll('div', class_='msg_box__head')
+        msgs = msg_html_info.findAll('div', class_='msg_box')
 
-        df = pd.DataFrame(index=[], columns=['name', 'contract', 'date'])
+        df = pd.DataFrame(index=[], columns=['name', 'contract', 'date', 'person'])
         for msg in msgs:
             elems1 = msg.find('div', class_='name')
             elems2 = msg.find('span', class_='keiyaku_plan contracting')
             elems3 = msg.find('div', class_='date')
+            elems4 = msg.find('p', class_='own_message')
 
             # name
             text1 = elems1.get_text()
@@ -96,7 +97,10 @@ class MentaScraping():
             text3 = re.sub(r'\未読\s\d+', '', text3)  # 未読情報削除
             text3 = text3.strip()  # 空白削除
 
-            df = df.append(pd.Series([text1, text2, text3], index=df.columns), ignore_index=True)
+            # person
+            text4 = '自分' if elems4 is not None else '受講生'
+
+            df = df.append(pd.Series([text1, text2, text3, text4], index=df.columns), ignore_index=True)
 
         return df
 
@@ -123,8 +127,6 @@ class MentaScraping():
 
         for date in dates:
             tmp_text = date.get_text()
-            print('scraping_result')
-            print(tmp_text)
             if get_count % 2 == 0:
                 text2 = tmp_text.strip()  # 空白削除
                 con_start_date.append(text2)
@@ -161,12 +163,11 @@ if __name__ == "__main__":
 
     # 単体テスト用 メッセージ取得
     msg_html_info = get_menta_client.get_msg_html_info(1)
-    # msg_html_info = BeautifulSoup(open('MENTA_20200915.html'), 'html.parser')
-    # msg_list_df = get_menta_client.get_msg_data_info(msg_html_info)
-    # print(msg_list_df)
+    msg_html_info = BeautifulSoup(open('MENTA_msg.html'), 'html.parser')
+    msg_list_df = get_menta_client.get_msg_data_info(msg_html_info)
+    print(msg_list_df)
 
     # 単体テスト用 契約者情報取得
     # cont_html_info = get_menta_client.get_cont_html_info()
-    cont_html_info = BeautifulSoup(open('MENTA_20210107.htm'), 'html.parser')
-    cont_list_df = get_menta_client.get_cont_data_info(cont_html_info)
-    print(cont_list_df)
+    # cont_html_info = BeautifulSoup(open('MENTA_cont.html'), 'html.parser')
+    # cont_list_df = get_menta_client.get_cont_data_info(cont_html_info)

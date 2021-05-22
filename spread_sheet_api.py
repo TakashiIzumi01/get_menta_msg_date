@@ -16,6 +16,7 @@ class SpreadSheetAPI():
         self.sheet2 = os.environ['SHEET2']
         self.insert_name_columns = int(os.environ['INSERT_NAME_COLUMNS'])
         self.insert_date_columns = int(os.environ['INSERT_DATE_COLUMNS'])
+        self.insert_person_columns = int(os.environ['INSERT_PERSON_COLUMNS'])
         self.insert_cont_start_columns = int(os.environ['INSERT_CONT_START_COLUMNS'])
         self.insert_cont_end_columns = int(os.environ['INSERT_CONT_END_COLUMNS'])
 
@@ -28,7 +29,8 @@ class SpreadSheetAPI():
 
         #認証情報設定
         #ダウンロードしたjsonファイル名をクレデンシャル変数に設定（秘密鍵、Pythonファイルから読み込みしやすい位置に置く）
-        path = os.getcwd() + '/'
+        # path = os.getcwd() + '/'
+        path = '/Users/horiuchitakashi/Desktop/python/MENTA/MENTA_fix_0511/'  # debug対応
         credentials = ServiceAccountCredentials.from_json_keyfile_name(path + self.json_file, scope)
 
         #OAuth2の資格情報を使用してGoogle APIにログインします。
@@ -91,9 +93,10 @@ class SpreadSheetAPI():
         return index_no_list
 
 
-    def date_update(self, match_df):
+    def date_update(self, match_df, flag):
         """
         概要：SSに日付データを更新
+             2021/05/22:最終連絡者情報の更新も追加
         """
         match_row = len(match_df)
 
@@ -104,12 +107,19 @@ class SpreadSheetAPI():
                 index_tmp = match_df['index_no']
                 insert_row = index_tmp[n]
 
-                # insertする日付データを取得
-                date_tmp = match_df['date'].values.tolist()
-                insert_value = date_tmp[n]
+                # insertするデータとスプシ場所の取得
+                if flag==0:
+                    tmp_data = match_df['date'].values.tolist()
+                    ss_place = self.insert_date_columns
+
+                else:
+                    tmp_data = match_df['person'].values.tolist()
+                    ss_place = self.insert_person_columns
+
+                insert_value = tmp_data[n]
 
                 # SSに書込み処理
-                self.get_ss_info().update_cell(insert_row, self.insert_date_columns, insert_value)
+                self.get_ss_info().update_cell(insert_row, ss_place, insert_value)
 
 
     def update_cont_date(self, cont_df, args):

@@ -32,8 +32,14 @@ class Parts():
         menta_contract_df = menta_df[menta_df['contract'] == '契約中']
 
         # 契約中だけれど、SSにないリストの抽出
+        print('SSのデータは？')
+        print(self.ss_df)
+        print('契約者のデータは？')
+        print(menta_contract_df)
         contact_non_name_df = pd.merge(self.ss_df, menta_contract_df, left_on='受講生', right_on='name', how='outer', indicator='check')
         contact_non_name_df = contact_non_name_df[contact_non_name_df['check'] == 'right_only']
+        print('入力データどうなってる？？')
+        print(contact_non_name_df)
 
         # SSに契約中だけれど、SSに無い方の名前追加＋追加した方のSS挿入場所情報の取得
         index_no_list = self.ss_api.name_insert(contact_non_name_df, self.ss_df)
@@ -50,6 +56,7 @@ class Parts():
     def update_date(self, menta_df):
         """
         概要：最終連絡日をSSに追加する処理
+             2021/05/22：最終連絡者も情報も追加
         """
         # 一致するリストの抽出
         match_df = pd.merge(self.ss_df, menta_df, left_on='受講生', right_on='name')
@@ -58,11 +65,14 @@ class Parts():
 
         # 契約中だけれどSSに名前が無いリストと一致するリストを結合
         update_df = pd.concat([input_list_df, self.contact_non_name_delv_df], sort=True)
-        update_df = update_df[['name', 'date', 'index_no']]
+        update_df = update_df[['name', 'date', 'person', 'index_no']]
         update_df = update_df.reset_index(drop=True)
 
         # SSの日付情報を更新
-        self.ss_api.date_update(update_df)
+        self.ss_api.date_update(update_df, 0)
+
+        # SSの最終連絡者情報を更新
+        self.ss_api.date_update(update_df, 1)
 
     def add_cont_date(self, cont_df):
         """
@@ -70,32 +80,21 @@ class Parts():
         """
         # 契約中の方のリストを取得
         current_cont_df = pd.merge(self.ss_df, cont_df, left_on='受講生', right_on='name', how='inner')
-        print('\n### 契約中のリスト一覧 ###')
-        print(current_cont_df)
 
         # 既に日時情報が最新で更新不要なリストを取得
         unnecessary_df = pd.merge(self.ss_df, cont_df, left_on=['受講生', '契約日', '契約終了日'], right_on=['name', 'cont_start_date', 'cont_end_date'])
         unnecessary_df = unnecessary_df['受講生']
-        print('\n### 契約中だけど既に最新なので更新不要なリスト ###')
-        print(unnecessary_df)
 
         # 更新が必要なリスト情報を取得
         update_cont_df = pd.merge(current_cont_df, unnecessary_df, on=['受講生'], how='outer', indicator='check')
         update_cont_df = update_cont_df[update_cont_df['check'] == 'left_only']
         update_cont_df = update_cont_df.reset_index(drop=True)  # indexを0から再付与
-        print('\n### 更新を実施するリスト ###')
-        print(update_cont_df)
-
         update_row_num = len(update_cont_df)
 
         # 更新対象があれば下記を実施
         if update_row_num > 0:
             cont_start_df = update_cont_df[['name', 'cont_start_date', 'index_no']]
-            print('\n### 契約開始日を更新するリスト ###')
-            print(cont_start_df)
             cont_end_df = update_cont_df[['name', 'cont_end_date', 'index_no']]
-            print('\n### 契約終了日を更新するリスト ###')
-            print(cont_end_df)
 
             # 契約日更新
             self.ss_api.update_cont_date(cont_start_df, 0)
