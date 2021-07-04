@@ -32,16 +32,12 @@ class Parts():
         menta_contract_df = menta_df[menta_df['contract'] == '契約中']
 
         # 契約中だけれど、SSにないリストの抽出
-        print('SSのデータは？')
-        print(self.ss_df)
-        print('契約者のデータは？')
-        print(menta_contract_df)
         contact_non_name_df = pd.merge(self.ss_df, menta_contract_df, left_on='受講生', right_on='name', how='outer', indicator='check')
         contact_non_name_df = contact_non_name_df[contact_non_name_df['check'] == 'right_only']
-        print('入力データどうなってる？？')
-        print(contact_non_name_df)
 
         # SSに契約中だけれど、SSに無い方の名前追加＋追加した方のSS挿入場所情報の取得
+        print("契約中で新規にSSに追加する処理リスト")
+        print(contact_non_name_df)
         index_no_list = self.ss_api.name_insert(contact_non_name_df, self.ss_df)
         contact_non_name_df['index_no'] = index_no_list
 
@@ -58,6 +54,11 @@ class Parts():
         概要：最終連絡日をSSに追加する処理
              2021/05/22：最終連絡者も情報も追加
         """
+        print("SS info")
+        print(self.ss_df)
+
+        print("====== scriping result ======")
+        print(menta_df)
         # 一致するリストの抽出
         match_df = pd.merge(self.ss_df, menta_df, left_on='受講生', right_on='name')
         # 一定以上前日付のデータは更新しない
@@ -69,6 +70,8 @@ class Parts():
         update_df = update_df.reset_index(drop=True)
 
         # SSの日付情報を更新
+        print("===更新情報===")
+        print(update_df)
         self.ss_api.date_update(update_df, 0)
 
         # SSの最終連絡者情報を更新

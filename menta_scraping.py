@@ -94,7 +94,8 @@ class MentaScraping():
 
             # date
             text3 = elems3.get_text()
-            text3 = re.sub(r'\未読\s\d+', '', text3)  # 未読情報削除
+            text3 = text3.replace('\n','')  # 改行コードの削除
+            text3 = text3.replace('未読','')  # 未読の削除
             text3 = text3.strip()  # 空白削除
 
             # person
