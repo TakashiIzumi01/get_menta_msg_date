@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pandas as pd
+import pandas as pd
 from menta_scraping import MentaScraping
 from spread_sheet_api import SpreadSheetAPI
 from kick_parts import Parts
